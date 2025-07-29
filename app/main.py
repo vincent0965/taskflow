@@ -2,7 +2,7 @@ from fastapi  import FastAPI
 from sqlalchemy import text
 from app.core.database import Base, eng_DB
 from app.models import user
-from app.routers import auth
+from app.routers import auth_router, user_router
 
 
 #測試連線
@@ -23,7 +23,7 @@ app = FastAPI()
 def on_startup():
     Base.metadata.create_all(bind=eng_DB)
 
-app.include_router(auth.router)
-
+app.include_router(auth_router.router)
+app.include_router(user_router.router)
 
 

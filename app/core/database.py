@@ -25,7 +25,13 @@ SessionLocal = sessionmaker( autocommit=False, autoflush=False, bind=eng_DB)
 # 建立Base class
 Base = declarative_base()
 
-
+# 取DB
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 
