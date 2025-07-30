@@ -4,6 +4,8 @@ from jose import jwt
 from datetime import datetime, timedelta
 from app.models.user import User
 from app.schemas.user import UserCreate, UserLogin
+from app.utils import create_access_token
+from app.config import setting
 
 import os
 
@@ -60,7 +62,19 @@ def check_user(db: Session, user_data: UserLogin):
     
     return user
 
+# login
+def login(user_data: UserLogin):
+    access_token_expires = timedelta(minutes=setting.ACCESS_TOKEN_EXPIRE_MINUTES)
+    refresh_token_expires = timedelta(days=setting.REFRESH_TOKEN_EXPIRE_DAYS)
 
+    access_token = create_access_token(data={"sub":user_data.username}, expires_delta=access_token_expires)
+    refresh_token = create_access_token(data={"sub":user_data.username}, expires_delta=refresh_token_expires)
+
+    return{
+        "access_token":access_token,
+        "refresh_token":refresh_token,
+        "token_type":"bearer"
+    }
 
 
 

@@ -4,6 +4,11 @@ from app.core.database import get_db
 from app.core.auth import verify_pw, create_access_token, get_pw_hash
 from app.models.user import User
 from app.schemas.user import UserLogin, UserCreate
+from app.config import setting
+from app.utils import create_access_token
+from datetime import timedelta
+from jose import jwt, JWTError
+
 
 router = APIRouter(
     prefix="/auth",
@@ -35,4 +40,27 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
     access_token = create_access_token(data={"sub": db_user.username})
     return {"access_token": access_token, "token_type":"bearer"}
 
+
+# refresh_token
+@router.post("/refresh")
+def refresh_token(refresh_token: str):
+    try:
+        payload = jwt.decode(refresh_token, setting.JWT_SECRET_KEY, algorithms=[setting.JWT_ALGO])
+        username: str = payload.get("sub")
+        if username is None:
+            raise HTTPException(status_code=401, detail="Invalid refresh token")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid refresh token")
+
+    new_access_token = create_access_token(
+        data={"sub": username},
+        expires_delta=timedelta(minutes=setting.ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
+
+    print(f"Generated Access Token: {new_access_token}")
+
+    return {
+        "access_token":new_access_token,
+        "token_type":"bearer"
+    }
 
